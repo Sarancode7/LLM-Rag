@@ -5,7 +5,24 @@ import remarkGfm from 'remark-gfm';
 import MessageSources from './MessageSources';
 import { formatTimestamp } from '../../utils/helpers';
 
+
 const Message = ({ message }) => {
+  // Custom components for ReactMarkdown
+  const components = {
+    strong: ({ node, ...props }) => {
+      // Check if this strong element is the first child of its parent
+      const parent = node?.position?.start?.line;
+      const isFirstElement = parent === 1 || node?.position?.start?.column === 1;
+      
+      return (
+        <>
+          {!isFirstElement && <br />}
+          <strong {...props} />
+        </>
+      );
+    },
+  };
+
   return (
     <div
       className={`flex items-start space-x-4 ${
@@ -38,7 +55,9 @@ const Message = ({ message }) => {
         }`}>
           {message.type === 'bot' ? (
             <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}>
+              remarkPlugins={[remarkGfm]}
+              components={components}
+            >
               {message.content}
             </ReactMarkdown>
           ) : (
@@ -56,5 +75,6 @@ const Message = ({ message }) => {
     </div>
   );
 };
+
 
 export default Message;
