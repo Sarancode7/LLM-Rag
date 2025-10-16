@@ -45,10 +45,11 @@ const Header = ({
                   {currentConversation.title}
                 </div>
               )}
-              <ConnectionStatus 
+              {/* <ConnectionStatus 
                 connectionStatus={connectionStatus}
                 lastError={lastError}
-              />
+              />*/}
+
             </div>
           </div>
           
@@ -94,22 +95,6 @@ const Header = ({
                 >
                   <Settings className="w-5 h-5" />
                 </button>
-                {isAuthenticated && (
-  <>
-                {/* Existing buttons... */}
-                
-                {/* Temporary Debug Button */}
-                <button
-                  onClick={() => {
-                    console.log("Debug: Manually fetching conversations...");
-                    fetchConversations();
-                  }}
-                  className="px-3 py-2 text-white/80 hover:text-white bg-yellow-500/20 hover:bg-yellow-500/30 rounded-lg border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-200 text-sm"
-                >
-                  Debug: Load Chats
-                </button>
-              </>
-            )}
               </>
             )}
           </div>

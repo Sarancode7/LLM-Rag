@@ -34,6 +34,7 @@ REQUIREMENTS:
 - If the context contains partial information, use what's available
 - Do NOT add external knowledge - only use the provided text
 - Respond in the user's language
+- Add blank lines between different sections and paragraphs for better readability
 
 COMPREHENSIVE ANSWER:"""
 

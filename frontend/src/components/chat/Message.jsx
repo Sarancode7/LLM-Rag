@@ -1,5 +1,7 @@
 import React from 'react';
 import { Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import MessageSources from './MessageSources';
 import { formatTimestamp } from '../../utils/helpers';
 
@@ -11,10 +13,10 @@ const Message = ({ message }) => {
       }`}
     >
       <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
-        message.type === 'user' 
-          ? 'bg-gradient-to-r from-blue-500 to-cyan-500' 
-          : message.isError 
-          ? 'bg-gradient-to-r from-red-500 to-pink-500' 
+        message.type === 'user'
+          ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+          : message.isError
+          ? 'bg-gradient-to-r from-red-500 to-pink-500'
           : 'bg-gradient-to-r from-purple-500 to-indigo-500'
       }`}>
         {message.type === 'user' ? (
@@ -34,8 +36,16 @@ const Message = ({ message }) => {
             ? 'bg-red-500/10 text-red-100 border-red-400/30'
             : 'bg-white/10 text-white border-white/20'
         }`}>
-          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          {message.type === 'bot' ? (
+            <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          ) : (
+            <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          )}
           
+          {/* Temporarily disabled - uncomment to show sources */}
           {/* <MessageSources sources={message.sources} /> */}
         </div>
         
