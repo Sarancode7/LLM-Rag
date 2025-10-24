@@ -1,5 +1,6 @@
 // App.jsx
-import React, { useState,useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import BackgroundElements from './components/layout/BackgroundElements';
 import MessageList from './components/chat/MessageList';
@@ -7,16 +8,20 @@ import InputArea from './components/layout/InputArea';
 import SidePanel from './components/layout/SidePanel';
 import ChatHistory from './components/chat/ChatHistory';
 import AuthInterface from './components/auth/AuthInterface';
+import UpgradePrompt from './components/auth/UpgradePrompt';
 import { useMessages } from './hooks/useMessages';
 import { useChatApi } from './hooks/useChatApi';
 import { useConnectionStatus } from './hooks/useConnectionStatus';
 import { useAuth } from './hooks/useAuth';
 import { useConversations } from './hooks/useConversations';
+import Payment from './components/payment/Payment';
 
 const RAGChatbot = () => {
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
-  
+  const [showPayment, setShowPayment] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false); // ✅ NEW STATE
+  const [hasShownUpgradeModal, setHasShownUpgradeModal] = useState(false);
   // Auth hook
   const {
     user,
@@ -39,16 +44,17 @@ const RAGChatbot = () => {
     deleteConversation,
     isLoading: conversationsLoading,
     fetchConversations,
-    fetchConversationMessages // Add this
+    fetchConversationMessages
   } = useConversations(getAuthHeaders, isAuthenticated);
 
   // Load conversations when user becomes authenticated
+ // ✅ Show upgrade modal when chat limits are reached
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("User authenticated, fetching conversations...");
-      fetchConversations();
+    if (isAuthenticated && chatLimits && !chatLimits.canChat && !hasShownUpgradeModal) {
+      setShowUpgradeModal(true);
+      setHasShownUpgradeModal(true);
     }
-  }, [isAuthenticated, fetchConversations]);
+  }, [chatLimits, isAuthenticated, hasShownUpgradeModal]);
 
   const {
     messages,
@@ -63,9 +69,9 @@ const RAGChatbot = () => {
     apiEndpoint,
     setApiEndpoint
   } = useChatApi(
-    addMessage, 
-    setIsLoading, 
-    getAuthHeaders(), 
+    addMessage,
+    setIsLoading,
+    getAuthHeaders(),
     addMessageToConversation
   );
 
@@ -74,6 +80,36 @@ const RAGChatbot = () => {
     lastError,
     testConnection
   } = useConnectionStatus(apiEndpoint);
+
+
+  // Handle upgrade prompt
+  const handleUpgrade = () => {
+    setShowUpgradeModal(false);
+    setShowPayment(true);
+  };
+
+  const handleCloseUpgradeModal = () => {
+    setShowUpgradeModal(false);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false);
+    // Update chat limits or user status here
+    alert('Payment successful! You now have unlimited chats.');
+  };
+
+  const handlePaymentBack = () => {
+    setShowPayment(false);
+  };
+
+  if (showPayment) {
+    return (
+      <Payment 
+        onBack={handlePaymentBack}
+        onSuccess={handlePaymentSuccess}
+      />
+    );
+  }
 
   // Enhanced send message with chat history
   const handleSendMessage = async (messageContent) => {
@@ -90,14 +126,7 @@ const RAGChatbot = () => {
     }
 
     if (!chatLimits.canChat) {
-      const errorMsg = {
-        id: Date.now(),
-        type: 'bot',
-        content: 'You\'ve used all 3 free chats. Upgrade to premium to continue!',
-        timestamp: new Date(),
-        isError: true
-      };
-      addMessage(errorMsg);
+      setShowUpgradeModal(true); // ✅ Show modal instead of blocking
       return;
     }
 
@@ -109,7 +138,7 @@ const RAGChatbot = () => {
 
     try {
       const userMessage = {
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: 'user',
         content: messageContent,
         timestamp: new Date()
@@ -117,7 +146,7 @@ const RAGChatbot = () => {
 
       // Add to local state immediately
       addMessage(userMessage);
-      
+
       // Add to conversation (optimistic update)
       addMessageToConversation(conversationId, {
         type: 'user',
@@ -127,7 +156,7 @@ const RAGChatbot = () => {
 
       // Send to backend with conversation ID
       await sendMessage(messageContent, conversationId);
-      
+
       // Update chat limits
       updateChatLimits(chatLimits.remaining - 1);
     } catch (error) {
@@ -135,35 +164,30 @@ const RAGChatbot = () => {
     }
   };
 
-  // Handle conversation selection - simplified
+  // Handle conversation selection
   const handleSelectConversation = async (conversation) => {
-    console.log("=== SELECTING CONVERSATION ===");
-    console.log("Conversation:", conversation);
+    console.log('SELECTING CONVERSATION:', conversation);
     
     try {
-      // Switch to the conversation (this sets currentConversation in the hook)
       switchToConversation(conversation);
-      
-      // Then fetch messages from Firebase
-      console.log("Fetching messages for conversation:", conversation.id);
+      console.log('Fetching messages for conversation:', conversation.id);
       const fetchedMessages = await fetchConversationMessages(conversation.id);
-      
-      console.log("Fetched messages:", fetchedMessages);
+      console.log('Fetched messages:', fetchedMessages);
       
       if (fetchedMessages && fetchedMessages.length > 0) {
         console.log(`Successfully loaded ${fetchedMessages.length} messages`);
       } else {
-        console.log("No messages found for this conversation");
+        console.log('No messages found for this conversation');
       }
     } catch (error) {
-      console.error("Error selecting conversation:", error);
+      console.error('Error selecting conversation:', error);
     }
   };
 
   // Handle new conversation
   const handleNewConversation = () => {
     const newConvId = startNewConversation();
-    clearMessages(); // Reset to welcome message
+    clearMessages();
   };
 
   // Handle conversation deletion
@@ -179,7 +203,6 @@ const RAGChatbot = () => {
     return (
       <div className="flex h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">
         <BackgroundElements />
-        
         <div className="flex flex-col flex-1">
           <Header 
             connectionStatus={connectionStatus}
@@ -188,17 +211,14 @@ const RAGChatbot = () => {
             apiEndpoint={apiEndpoint}
             setApiEndpoint={setApiEndpoint}
             testConnection={testConnection}
-            // Auth props
             user={user}
             isAuthenticated={isAuthenticated}
             authLoading={authLoading}
             chatLimits={chatLimits}
             onLogout={logout}
-            // Chat history props
             showChatHistory={showChatHistory}
             setShowChatHistory={setShowChatHistory}
           />
-          
           <div className="flex-1 flex items-center justify-center">
             <AuthInterface 
               user={user}
@@ -228,18 +248,17 @@ const RAGChatbot = () => {
           isLoading={conversationsLoading}
         />
       )}
-      
+
       {/* Domain Panel */}
       <SidePanel 
         isOpen={sidePanelOpen}
         setIsOpen={setSidePanelOpen}
       />
-      
+
       {/* Main Content */}
       <div className={`flex flex-col flex-1 transition-all duration-300 ${
-        (sidePanelOpen ? 'lg:ml-80' : 'ml-0') + 
-        (showChatHistory ? ' ml-80' : '')
-      }`}>
+        sidePanelOpen ? 'lg:ml-80 ml-0' : ''
+      } ${showChatHistory ? 'ml-80' : ''}`}>
         <Header 
           connectionStatus={connectionStatus}
           lastError={lastError}
@@ -247,13 +266,11 @@ const RAGChatbot = () => {
           apiEndpoint={apiEndpoint}
           setApiEndpoint={setApiEndpoint}
           testConnection={testConnection}
-          // Auth props
           user={user}
           isAuthenticated={isAuthenticated}
           authLoading={authLoading}
           chatLimits={chatLimits}
           onLogout={logout}
-          // Chat history props
           showChatHistory={showChatHistory}
           setShowChatHistory={setShowChatHistory}
           currentConversation={currentConversation}
@@ -268,11 +285,20 @@ const RAGChatbot = () => {
           onSendMessage={handleSendMessage}
           connectionStatus={connectionStatus}
           isLoading={isLoading}
-          // Auth props
           isAuthenticated={isAuthenticated}
           chatLimits={chatLimits}
+          onUpgrade={handleUpgrade}  // ✅ MAKE SURE THIS IS HERE
         />
+
       </div>
+
+      {/* ✅ Upgrade Modal Overlay */}
+      {showUpgradeModal && (
+        <UpgradePrompt 
+          onUpgrade={handleUpgrade}
+          onClose={handleCloseUpgradeModal}
+        />
+      )}
     </div>
   );
 };

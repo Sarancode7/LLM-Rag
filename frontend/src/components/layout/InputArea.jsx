@@ -8,7 +8,8 @@ const InputArea = ({
   isLoading,
   // Auth props
   isAuthenticated,
-  chatLimits
+  chatLimits,
+  onUpgrade  // ✅ ADD THIS LINE
 }) => {
   const [inputMessage, setInputMessage] = useState('');
   const inputRef = useRef(null);
@@ -105,7 +106,9 @@ const InputArea = ({
                   {chatLimits.remaining === 1 ? "Last free chat!" : "Almost out of free chats"}
                 </span>
               </div>
-              <button className="text-yellow-200 hover:text-yellow-100 text-sm underline">
+              <button 
+                onClick={onUpgrade}
+                className="text-yellow-200 hover:text-yellow-100 text-sm underline">
                 Upgrade to Premium
               </button>
             </div>
@@ -125,7 +128,9 @@ const InputArea = ({
                   You've used all 3 free chats. Upgrade to premium for unlimited conversations.
                 </p>
               </div>
-              <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm font-medium">
+              <button 
+                onClick={onUpgrade}  // ✅ CHANGE THIS LINE
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm font-medium">
                 Upgrade Now
               </button>
             </div>
