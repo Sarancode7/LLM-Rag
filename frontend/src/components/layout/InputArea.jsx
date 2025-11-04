@@ -1,278 +1,29 @@
-// // components/layout/InputArea.jsx
-// import React, { useState, useRef } from 'react';
-// import { Send, Loader2, AlertCircle, Lock, Crown } from 'lucide-react';
 
-// const InputArea = ({ 
-//   onSendMessage, 
-//   connectionStatus, 
-//   isLoading,
-//   // Auth props
-//   isAuthenticated,
-//   chatLimits,
-//   onUpgrade  // ✅ ADD THIS LINE
-// }) => {
-//   const [inputMessage, setInputMessage] = useState('');
-//   const inputRef = useRef(null);
-
-//   const canSend = () => {
-//     return inputMessage.trim() && 
-//            !isLoading && 
-//            connectionStatus === 'connected' && 
-//            isAuthenticated && 
-//            chatLimits.canChat;
-//   };
-
-//   const getPlaceholderText = () => {
-//     if (!isAuthenticated) {
-//       return "Please log in with Google to start chatting...";
-//     } else if (!chatLimits.canChat) {
-//       return "You've used all free chats. Upgrade to continue...";
-//     } else if (connectionStatus !== 'connected') {
-//       return "Please check server connection...";
-//     } else {
-//       return "Ask me anything about your documents...";
-//     }
-//   };
-
-//   const handleSendMessage = () => {
-//     if (!canSend()) return;
-    
-//     onSendMessage(inputMessage);
-//     setInputMessage('');
-//   };
-
-//   const handleKeyPress = (e) => {
-//     if (e.key === 'Enter' && !e.shiftKey) {
-//       e.preventDefault();
-//       handleSendMessage();
-//     }
-//   };
-
-//   const getStatusWarning = () => {
-//     if (!isAuthenticated) {
-//       return (
-//         <span className="text-yellow-300 flex items-center">
-//           <Lock className="w-3 h-3 mr-1" />
-//           Login required
-//         </span>
-//       );
-//     } else if (!chatLimits.canChat) {
-//       return (
-//         <span className="text-red-300 flex items-center">
-//           <Crown className="w-3 h-3 mr-1" />
-//           Upgrade needed
-//         </span>
-//       );
-//     } else if (connectionStatus !== 'connected') {
-//       return (
-//         <span className="text-red-300 flex items-center">
-//           <AlertCircle className="w-3 h-3 mr-1" />
-//           Server disconnected
-//         </span>
-//       );
-//     }
-//     return null;
-//   };
-
-//   const getChatLimitInfo = () => {
-//     if (!isAuthenticated || !chatLimits.canChat) return null;
-    
-//     const remaining = chatLimits.remaining;
-//     let textColor = 'text-green-300';
-    
-//     if (remaining <= 1) {
-//       textColor = 'text-red-300';
-//     } else if (remaining <= 2) {
-//       textColor = 'text-yellow-300';
-//     }
-    
-//     return (
-//       <span className={`${textColor} text-sm`}>
-//         {remaining} chat{remaining !== 1 ? 's' : ''} remaining
-//       </span>
-//     );
-//   };
-
-//   return (
-//     <div className="relative z-10 bg-white/10 backdrop-blur-lg border-t border-white/20">
-//       <div className="max-w-4xl mx-auto p-6">
-//         {/* Chat limit warning banner */}
-//         {isAuthenticated && chatLimits.remaining <= 1 && chatLimits.canChat && (
-//           <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-//             <div className="flex items-center justify-between">
-//               <div className="flex items-center space-x-2">
-//                 <Crown className="w-4 h-4 text-yellow-400" />
-//                 <span className="text-yellow-200 text-sm">
-//                   {chatLimits.remaining === 1 ? "Last free chat!" : "Almost out of free chats"}
-//                 </span>
-//               </div>
-//               <button 
-//                 onClick={onUpgrade}
-//                 className="text-yellow-200 hover:text-yellow-100 text-sm underline">
-//                 Upgrade to Premium
-//               </button>
-//             </div>
-//           </div>
-//         )}
-
-//         {/* No chats left banner */}
-//         {isAuthenticated && !chatLimits.canChat && (
-//           <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <div className="flex items-center space-x-2 mb-1">
-//                   <Crown className="w-5 h-5 text-red-400" />
-//                   <span className="text-red-200 font-medium">Free chats used up!</span>
-//                 </div>
-//                 <p className="text-red-200/80 text-sm">
-//                   You've used all 3 free chats. Upgrade to premium for unlimited conversations.
-//                 </p>
-//               </div>
-//               <button 
-//                 onClick={onUpgrade}  // ✅ CHANGE THIS LINE
-//                 className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm font-medium">
-//                 Upgrade Now
-//               </button>
-//             </div>
-//           </div>
-//         )}
-
-//         <div className="flex items-end space-x-4">
-//           <div className="flex-1">
-//             <textarea
-//               ref={inputRef}
-//               value={inputMessage}
-//               onChange={(e) => setInputMessage(e.target.value)}
-//               onKeyPress={handleKeyPress}
-//               placeholder={getPlaceholderText()}
-//               rows={1}
-//               disabled={!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected'}
-//               className={`w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-white placeholder-white/50 shadow-xl ${
-//                 (!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected') 
-//                   ? 'opacity-50 cursor-not-allowed' 
-//                   : ''
-//               }`}
-//               style={{ minHeight: '56px', maxHeight: '120px' }}
-//             />
-//           </div>
-//           <button
-//             onClick={handleSendMessage}
-//             disabled={!canSend()}
-//             className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex-shrink-0 shadow-xl transform hover:scale-105 active:scale-95"
-//             title={
-//               !isAuthenticated ? "Login required" :
-//               !chatLimits.canChat ? "Upgrade needed" :
-//               connectionStatus !== 'connected' ? "Server disconnected" :
-//               "Send message"
-//             }
-//           >
-//             {isLoading ? (
-//               <Loader2 className="w-6 h-6 animate-spin" />
-//             ) : !isAuthenticated ? (
-//               <Lock className="w-6 h-6" />
-//             ) : !chatLimits.canChat ? (
-//               <Crown className="w-6 h-6" />
-//             ) : (
-//               <Send className="w-6 h-6" />
-//             )}
-//           </button>
-//         </div>
-        
-//         <div className="flex items-center justify-between mt-3">
-//           <p className="text-white/60 text-sm">
-//             Press Enter to send, Shift+Enter for new line
-//           </p>
-//           <div className="flex items-center space-x-4 text-white/60 text-sm">
-//             {getChatLimitInfo()}
-//             <span>{inputMessage.length}/1000</span>
-//             {getStatusWarning()}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default InputArea;
-
-// components/layout/InputArea.jsx
 import React, { useState, useRef } from 'react';
 import { Send, Loader2, AlertCircle, Lock, Crown } from 'lucide-react';
-import axios from "axios";
 
-// ✅ Razorpay integration
-const displayRazorpay = async () => {
-  try {
-    // Step 1: Create order on backend
-    const { data: order } = await axios.post("http://localhost:8000/api/payment/create-order", {
-      amount: 499, // ₹499 for premium
-      currency: "INR",
-    });
-
-    // Step 2: Configure Razorpay options
-    const options = {
-      key: "rzp_test_RYYc3rSYNvwjRx", // <-- replace with your Razorpay Test Key
-      amount: order.amount,
-      currency: order.currency,
-      name: "Your App Name",
-      description: "Upgrade to Premium",
-      order_id: order.id,
-      handler: async function (response) {
-        // Step 3: Verify payment
-        const verify = await axios.post("http://localhost:8000/api/payment/verify-payment", response);
-        if (verify.data.status === "success") {
-          alert("✅ Payment Successful! You are now a premium user.");
-        } else {
-          alert("⚠️ Payment verification failed.");
-        }
-      },
-      prefill: {
-        name: "Hari",
-        email: "hari@example.com",
-        contact: "9999999999",
-      },
-      theme: {
-        color: "#8b5cf6",
-      },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-  } catch (err) {
-    console.error("Razorpay error:", err);
-    alert("Something went wrong while starting the payment.");
-  }
-};
-
-const InputArea = ({ 
-  onSendMessage, 
-  connectionStatus, 
+const InputArea = ({
+  onSendMessage,
+  connectionStatus,
   isLoading,
-  // Auth props
   isAuthenticated,
   chatLimits
 }) => {
   const [inputMessage, setInputMessage] = useState('');
   const inputRef = useRef(null);
 
-  const canSend = () => {
-    return inputMessage.trim() && 
-           !isLoading && 
-           connectionStatus === 'connected' && 
-           isAuthenticated && 
-           chatLimits.canChat;
-  };
- 
+  const canSend = () =>
+    inputMessage.trim() &&
+    !isLoading &&
+    connectionStatus === 'connected' &&
+    isAuthenticated &&
+    chatLimits.canChat;
+
   const getPlaceholderText = () => {
-    if (!isAuthenticated) {
-      return "Please log in with Google to start chatting...";
-    } else if (!chatLimits.canChat) {
-      return "You've used all free chats. Upgrade to continue...";
-    } else if (connectionStatus !== 'connected') {
-      return "Please check server connection...";
-    } else {
-      return "Ask me anything about your documents...";
-    }
+    if (!isAuthenticated) return "Please log in with Google to start chatting...";
+    else if (!chatLimits.canChat) return "You've used all free chats. Upgrade to continue...";
+    else if (connectionStatus !== 'connected') return "Please check server connection...";
+    else return "Ask me anything about your documents...";
   };
 
   const handleSendMessage = () => {
@@ -291,21 +42,21 @@ const InputArea = ({
   const getStatusWarning = () => {
     if (!isAuthenticated) {
       return (
-        <span className="text-yellow-300 flex items-center">
+        <span className="text-yellow-700 flex items-center">
           <Lock className="w-3 h-3 mr-1" />
           Login required
         </span>
       );
     } else if (!chatLimits.canChat) {
       return (
-        <span className="text-red-300 flex items-center">
+        <span className="text-blue-700 flex items-center">
           <Crown className="w-3 h-3 mr-1" />
           Upgrade needed
         </span>
       );
     } else if (connectionStatus !== 'connected') {
       return (
-        <span className="text-red-300 flex items-center">
+        <span className="text-red-600 flex items-center">
           <AlertCircle className="w-3 h-3 mr-1" />
           Server disconnected
         </span>
@@ -316,16 +67,10 @@ const InputArea = ({
 
   const getChatLimitInfo = () => {
     if (!isAuthenticated || !chatLimits.canChat) return null;
-    
     const remaining = chatLimits.remaining;
-    let textColor = 'text-green-300';
-    
-    if (remaining <= 1) {
-      textColor = 'text-red-300';
-    } else if (remaining <= 2) {
-      textColor = 'text-yellow-300';
-    }
-    
+    let textColor = 'text-green-600';
+    if (remaining <= 1) textColor = 'text-red-600';
+    else if (remaining <= 2) textColor = 'text-yellow-600';
     return (
       <span className={`${textColor} text-sm`}>
         {remaining} chat{remaining !== 1 ? 's' : ''} remaining
@@ -334,78 +79,67 @@ const InputArea = ({
   };
 
   return (
-    <div className="relative z-10 bg-white/10 backdrop-blur-lg border-t border-white/20">
+    <div className="relative z-10 bg-transparent">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Chat limit warning banner */}
-        {isAuthenticated && chatLimits.remaining <= 1 && chatLimits.canChat && (
-          <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Crown className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-200 text-sm">
-                  {chatLimits.remaining === 1 ? "Last free chat!" : "Almost out of free chats"}
-                </span>
-              </div>
-              <button
-                onClick={displayRazorpay}
-                className="text-yellow-200 hover:text-yellow-100 text-sm underline"
-              >
-                Upgrade to Premium
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* No chats left banner */}
-        {isAuthenticated && !chatLimits.canChat && (
-          <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Crown className="w-5 h-5 text-red-400" />
-                  <span className="text-red-200 font-medium">Free chats used up!</span>
-                </div>
-                <p className="text-red-200/80 text-sm">
-                  You've used all 3 free chats. Upgrade to premium for unlimited conversations.
-                </p>
-              </div>
-              <button
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm font-medium"
-                onClick={displayRazorpay}
-              >
-                Upgrade Now
-              </button>
-            </div>
-          </div>
-        )}
-
+        {/* Input Row */}
         <div className="flex items-end space-x-4">
-          <div className="flex-1">
+          <div className="flex-1 relative group">
+            {/* Floating Label */}
+            <label
+              htmlFor="chatInput"
+              className={`absolute left-5 top-2 text-sm transition-all duration-200 ${
+                inputMessage
+                  ? 'text-gray-800 -translate-y-3 scale-90 bg-white px-1'
+                  : 'text-gray-600 translate-y-2 scale-100'
+              }`}
+            >
+              {getPlaceholderText()}
+            </label>
+
+            {/* Text Area */}
             <textarea
+              id="chatInput"
               ref={inputRef}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={getPlaceholderText()}
               rows={1}
-              disabled={!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected'}
-              className={`w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-white placeholder-white/50 shadow-xl ${
-                (!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected') 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : ''
+              disabled={
+                !isAuthenticated ||
+                !chatLimits.canChat ||
+                connectionStatus !== 'connected'
+              }
+              className={`w-full px-5 pt-7 pb-3 rounded-2xl backdrop-blur-md bg-white/90 border border-blue-100 
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 text-black font-medium placeholder-transparent
+                         shadow-sm transition-all duration-200 resize-none ${
+                (!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected')
+                  ? 'opacity-60 cursor-not-allowed'
+                  : 'focus:shadow-lg'
               }`}
-              style={{ minHeight: '56px', maxHeight: '120px' }}
+              style={{
+                minHeight: '44px',
+                maxHeight: '100px',
+                color: '#000',
+                fontWeight: 500,
+              }}
             />
           </div>
+
+          {/* Send Button */}
           <button
             onClick={handleSendMessage}
             disabled={!canSend()}
-            className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex-shrink-0 shadow-xl transform hover:scale-105 active:scale-95"
+            className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl 
+                      hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed 
+                      transition-all duration-200 flex-shrink-0 shadow-md transform hover:scale-105 active:scale-95"
             title={
-              !isAuthenticated ? "Login required" :
-              !chatLimits.canChat ? "Upgrade needed" :
-              connectionStatus !== 'connected' ? "Server disconnected" :
-              "Send message"
+              !isAuthenticated
+                ? 'Login required'
+                : !chatLimits.canChat
+                ? 'Upgrade needed'
+                : connectionStatus !== 'connected'
+                ? 'Server disconnected'
+                : 'Send message'
             }
           >
             {isLoading ? (
@@ -419,12 +153,11 @@ const InputArea = ({
             )}
           </button>
         </div>
-        
-        <div className="flex items-center justify-between mt-3">
-          <p className="text-white/60 text-sm">
-            Press Enter to send, Shift+Enter for new line
-          </p>
-          <div className="flex items-center space-x-4 text-white/60 text-sm">
+
+        {/* Footer info */}
+        <div className="flex items-center justify-between mt-3 text-gray-800 text-sm">
+          <p>Press Enter to send, Shift+Enter for new line</p>
+          <div className="flex items-center space-x-4">
             {getChatLimitInfo()}
             <span>{inputMessage.length}/1000</span>
             {getStatusWarning()}

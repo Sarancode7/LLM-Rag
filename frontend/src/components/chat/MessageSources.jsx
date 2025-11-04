@@ -7,13 +7,17 @@ const MessageSources = ({ sources }) => {
   }
 
   return (
-    <div className="mt-3 pt-3 border-t border-white/20">
-      <p className="text-xs text-white/70 mb-2 flex items-center">
-        <MessageCircle className="w-3 h-3 mr-1" />
+    <div className="mt-3 pt-3 border-t border-black/20">
+      <p className="text-xs text-black mb-2 flex items-center font-medium">
+        <MessageCircle className="w-3 h-3 mr-1 text-black" />
         Sources:
       </p>
+
       {sources.map((source, index) => (
-        <div key={index} className="text-xs text-white/80 bg-white/10 rounded-lg p-2 mb-1">
+        <div
+          key={index}
+          className="text-xs text-black bg-gray-100 rounded-lg p-2 mb-1 border border-gray-200 font-medium"
+        >
           {source.document || source}
         </div>
       ))}

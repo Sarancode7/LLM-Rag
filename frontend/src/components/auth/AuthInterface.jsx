@@ -1,4 +1,3 @@
-// components/auth/AuthInterface.jsx
 import React from 'react';
 import { User, LogOut, MessageCircle, Crown } from 'lucide-react';
 import GoogleLoginButton from './GoogleLoginButton';

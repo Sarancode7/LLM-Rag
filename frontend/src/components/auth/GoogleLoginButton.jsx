@@ -1,4 +1,3 @@
-// components/auth/GoogleLoginButton.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { GOOGLE_CONFIG } from '../../utils/constants';
 
