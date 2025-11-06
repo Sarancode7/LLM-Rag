@@ -39,6 +39,7 @@ const RAGChatbot = () => {
     addMessageToConversation,
     deleteConversation,
     isLoading: conversationsLoading,
+    fetchConversations,
     fetchConversationMessages
   } = useConversations(getAuthHeaders, isAuthenticated);
 
@@ -50,11 +51,12 @@ const RAGChatbot = () => {
     setIsLoading
   } = useMessages(currentConversation, conversationMessages);
 
+  // ✅ FIX: Pass getAuthHeaders function, not the result of calling it
   const {
     sendMessage,
     apiEndpoint,
     setApiEndpoint
-  } = useChatApi(addMessage, setIsLoading, getAuthHeaders(), addMessageToConversation);
+  } = useChatApi(addMessage, setIsLoading, getAuthHeaders, addMessageToConversation);
 
   const {
     connectionStatus,
@@ -146,19 +148,11 @@ const RAGChatbot = () => {
         <BackgroundElements />
         <div className="flex flex-col flex-1">
           <Header
-            connectionStatus={connectionStatus}
-            lastError={lastError}
-            clearChat={clearMessages}
-            apiEndpoint={apiEndpoint}
-            setApiEndpoint={setApiEndpoint}
-            testConnection={testConnection}
-            user={user}
             isAuthenticated={isAuthenticated}
-            authLoading={authLoading}
-            chatLimits={chatLimits}
+            user={user}
             onLogout={logout}
-            showChatHistory={showChatHistory}
-            setShowChatHistory={setShowChatHistory}
+            sidePanelOpen={sidePanelOpen}
+            setSidePanelOpen={setSidePanelOpen}
           />
           <div className="flex-1 flex items-center justify-center">
             <AuthInterface
@@ -189,28 +183,30 @@ const RAGChatbot = () => {
         />
       )}
 
-      <SidePanel isOpen={sidePanelOpen} setIsOpen={setSidePanelOpen} />
+      {/* ✅ Main SidePanel with Conversations */}
+      <SidePanel 
+        isOpen={sidePanelOpen} 
+        setIsOpen={setSidePanelOpen}
+        conversations={conversations}
+        currentConversation={currentConversation}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
+        isLoading={conversationsLoading}
+      />
 
       <div
         className={`flex flex-col flex-1 transition-all duration-300 ${
           sidePanelOpen ? 'lg:ml-80 ml-0' : ''
         } ${showChatHistory ? 'ml-80' : ''}`}
       >
+        {/* ✅ Updated Header with sidePanelOpen props */}
         <Header
-          connectionStatus={connectionStatus}
-          lastError={lastError}
-          clearChat={handleNewConversation}
-          apiEndpoint={apiEndpoint}
-          setApiEndpoint={setApiEndpoint}
-          testConnection={testConnection}
-          user={user}
           isAuthenticated={isAuthenticated}
-          authLoading={authLoading}
-          chatLimits={chatLimits}
+          user={user}
           onLogout={logout}
-          showChatHistory={showChatHistory}
-          setShowChatHistory={setShowChatHistory}
-          currentConversation={currentConversation}
+          sidePanelOpen={sidePanelOpen}
+          setSidePanelOpen={setSidePanelOpen}
         />
 
         <MessageList messages={messages} isLoading={isLoading} user={user} />

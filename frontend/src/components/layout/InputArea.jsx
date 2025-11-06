@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Send, Loader2, AlertCircle, Lock, Crown } from 'lucide-react';
 
@@ -81,8 +80,8 @@ const InputArea = ({
   return (
     <div className="relative z-10 bg-transparent">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Input Row */}
-        <div className="flex items-end space-x-4">
+        {/* Input Row - CHANGED: items-end to items-center */}
+        <div className="flex items-center space-x-4">
           <div className="flex-1 relative group">
             {/* Floating Label */}
             <label
@@ -96,7 +95,7 @@ const InputArea = ({
               {getPlaceholderText()}
             </label>
 
-            {/* Text Area */}
+            {/* Text Area - CHANGED: pt-7 pb-3 to py-3 and px-5 */}
             <textarea
               id="chatInput"
               ref={inputRef}
@@ -109,7 +108,7 @@ const InputArea = ({
                 !chatLimits.canChat ||
                 connectionStatus !== 'connected'
               }
-              className={`w-full px-5 pt-7 pb-3 rounded-2xl backdrop-blur-md bg-white/90 border border-blue-100 
+              className={`w-full px-5 py-3 rounded-2xl backdrop-blur-md bg-white/90 border border-blue-100 
                          focus:outline-none focus:ring-4 focus:ring-blue-200 text-black font-medium placeholder-transparent
                          shadow-sm transition-all duration-200 resize-none ${
                 (!isAuthenticated || !chatLimits.canChat || connectionStatus !== 'connected')

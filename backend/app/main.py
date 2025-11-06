@@ -2,26 +2,20 @@
 from fastapi import FastAPI, Depends
 import uvicorn
 import logging
-import razorpay
 from app.config.settings import settings
-from fastapi.middleware.cors import CORSMiddleware
-from app.api import payment
-
 from app.middleware.cors import add_cors_middleware
 from app.models.schemas import (
     ChatRequest, ChatResponse, GoogleTokenRequest, AuthResponse, UserInfo
 )
 from app.api.endpoints import (
-    # Existing endpoints
     health_check, chat, debug_question, concise_chat,
-    # New auth endpoints
     google_login, get_user_status, check_chat_limits, upgrade_placeholder,
-    # New chat history endpoints
     get_chat_history, get_conversation_messages, delete_conversation
 )
 from app.core.rag_engine import rag_engine
 from app.core.auth import get_current_user, check_chat_limit
 from app.core.firebase_service import firebase_service
+from app.api import payment
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(title=settings.TITLE, version=settings.VERSION)
-app.include_router(payment.router, prefix="/api/payment") 
-
+app.include_router(payment.router, prefix="/api/payment")
 
 # Add middleware
 add_cors_middleware(app)
@@ -39,21 +32,23 @@ add_cors_middleware(app)
 @app.on_event("startup")
 async def startup_event():
     """Initialize RAG and Firebase on startup"""
-    # Initialize Firebase first
     firebase_initialized = firebase_service.initialize()
     if not firebase_initialized:
         logger.warning("Firebase initialization failed - running without persistent storage")
     
-    # Initialize RAG
     rag_engine.initialize()
     logger.info("Application startup complete")
 
-# Health Routes
+# ============================================
+# HEALTH ROUTES
+# ============================================
 @app.get("/health")
 async def health_endpoint():
     return await health_check()
 
-# Authentication Routes
+# ============================================
+# AUTHENTICATION ROUTES
+# ============================================
 @app.post("/auth/google", response_model=AuthResponse)
 async def google_login_endpoint(request: GoogleTokenRequest):
     return await google_login(request)
@@ -70,7 +65,9 @@ async def check_limits_endpoint(current_user: UserInfo = Depends(get_current_use
 async def upgrade_endpoint():
     return await upgrade_placeholder()
 
-# Chat Routes (now protected)
+# ============================================
+# CHAT ROUTES
+# ============================================
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest, current_user: UserInfo = Depends(check_chat_limit)):
     return await chat(request, current_user)
@@ -83,7 +80,9 @@ async def debug_endpoint(request: ChatRequest, current_user: UserInfo = Depends(
 async def concise_endpoint(request: ChatRequest, current_user: UserInfo = Depends(check_chat_limit)):
     return await concise_chat(request, current_user)
 
-# routes for chat history
+# ============================================
+# CHAT HISTORY ROUTES
+# ============================================
 @app.get("/history")
 async def history_endpoint(current_user: UserInfo = Depends(get_current_user)):
     return await get_chat_history(current_user)
@@ -96,22 +95,9 @@ async def conversation_endpoint(conversation_id: str, current_user: UserInfo = D
 async def delete_conversation_endpoint(conversation_id: str, current_user: UserInfo = Depends(get_current_user)):
     return await delete_conversation(conversation_id, current_user)
 
-@app.get("/test/conversations/{user_id}")
-async def test_conversations(user_id: str):
-    """Test route to check if conversations are being saved"""
-    try:
-        conversations = firebase_service.get_user_conversations(user_id)
-        return {
-            "user_id": user_id,
-            "conversation_count": len(conversations),
-            "conversations": conversations,
-            "firebase_initialized": firebase_service.initialized
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "firebase_initialized": firebase_service.initialized
-        }
+# ============================================
+# DEBUG/TEST ROUTES (Optional)
+# ============================================
 @app.get("/test/conversations/{user_id}")
 async def test_conversations(user_id: str):
     """Test route to check if conversations are being saved"""
@@ -155,7 +141,6 @@ async def test_messages(conversation_id: str):
             "conversation_id": conversation_id,
             "firebase_initialized": firebase_service.initialized
         }
-
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host=settings.HOST, port=settings.PORT, reload=True)

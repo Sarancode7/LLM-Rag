@@ -5,7 +5,6 @@ import remarkGfm from 'remark-gfm';
 import MessageSources from './MessageSources';
 import { formatTimestamp } from '../../utils/helpers';
 
-
 const Message = ({ message }) => {
   // Custom components for ReactMarkdown
   const components = {
@@ -34,7 +33,7 @@ const Message = ({ message }) => {
           ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
           : message.isError
           ? 'bg-gradient-to-r from-red-500 to-pink-500'
-          : 'bg-gradient-to-r from-purple-500 to-indigo-500'
+          : 'bg-gradient-to-r from-blue-500 to-cyan-500' 
       }`}>
         {message.type === 'user' ? (
           <User className="w-5 h-5 text-white" />
@@ -50,8 +49,8 @@ const Message = ({ message }) => {
           message.type === 'user'
             ? 'bg-gradient-to-r from-blue-500/90 to-cyan-500/90 text-white border-blue-400/30'
             : message.isError
-            ? 'bg-red-500/10 text-red-100 border-red-400/30'
-            : 'bg-white/10 text-white border-white/20'
+            ? 'bg-red-500/10 text-red-700 border-red-400/30'
+            : 'bg-white/40 text-black border-white/20'
         }`}>
           {message.type === 'bot' ? (
             <ReactMarkdown 
@@ -68,13 +67,12 @@ const Message = ({ message }) => {
           {/* <MessageSources sources={message.sources} /> */}
         </div>
         
-        <div className="text-xs text-white/50 mt-2">
+        <div className="text-xs text-gray-700 mt-2">
           {formatTimestamp(message.timestamp)}
         </div>
       </div>
     </div>
   );
 };
-
 
 export default Message;

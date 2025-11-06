@@ -12,15 +12,15 @@ const AuthInterface = ({
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full text-center border border-white/20">
+        <div className="bg-white/45 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full text-center border border-white/70">
           <div className="mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
               <User className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-black mb-2">
               Welcome to RAG Chatbot
             </h3>
-            <p className="text-white/70 text-sm">
+            <p className="text-black/70 text-sm">
               Sign in with Google to start your conversation. You'll get 3 free chats to try out our AI assistant!
             </p>
           </div>
@@ -29,7 +29,7 @@ const AuthInterface = ({
             isLoading={isLoading}
           />
           
-          <div className="mt-6 text-xs text-white/50">
+          <div className="mt-6 text-xs text-black/50">
             By signing in, you agree to our terms of service
           </div>
         </div>

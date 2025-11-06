@@ -25,7 +25,7 @@ export const useConversations = (authHeaders, isAuthenticated) => {
       console.log("Fetching conversations from:", API_ENDPOINTS.CHAT_HISTORY);
       
       const response = await fetch(API_ENDPOINTS.CHAT_HISTORY, {
-        headers: authHeaders()
+        headers: authHeaders()  // ✅ CALL as function, not spread
       });
 
       console.log("Conversations response status:", response.status);
@@ -34,14 +34,11 @@ export const useConversations = (authHeaders, isAuthenticated) => {
         const data = await response.json();
         console.log("Conversations data received:", data);
         
-        // Limit to last 3 conversations only
         const limitedConversations = (data.conversations || []).slice(0, 3);
         setConversations(limitedConversations);
         console.log(`Set ${limitedConversations.length} conversations in state (limited to 3)`);
       } else {
-        console.error('Failed to fetch conversations:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
+        console.error('Failed to fetch conversations:', response.status);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -50,47 +47,29 @@ export const useConversations = (authHeaders, isAuthenticated) => {
     }
   }, [isAuthenticated, authHeaders]);
 
-  // Fetch messages for a specific conversation
   const fetchConversationMessages = useCallback(async (conversationId) => {
-    if (!isAuthenticated || !conversationId) {
-      console.log("Cannot fetch messages: not authenticated or no conversation ID");
-      return;
-    }
+    if (!isAuthenticated || !conversationId) return;
 
     try {
-      console.log(`Fetching messages for conversation: ${conversationId}`);
-      
       const response = await fetch(
         `${API_ENDPOINTS.CONVERSATION_MESSAGES}/${conversationId}`,
-        {
-          headers: authHeaders()
-        }
+        { headers: authHeaders() }  // ✅ CALL as function
       );
-
-      console.log(`Messages response status: ${response.status}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`Received ${data.messages?.length || 0} messages for conversation ${conversationId}`);
-        
         setConversationMessages(prev => ({
           ...prev,
           [conversationId]: data.messages || []
         }));
-        
         return data.messages || [];
-      } else {
-        console.error(`Failed to fetch messages: ${response.status}`);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
       }
     } catch (error) {
-      console.error('Error fetching conversation messages:', error);
+      console.error('Error fetching messages:', error);
     }
     return [];
   }, [isAuthenticated, authHeaders]);
 
-  // Start a new conversation
   const startNewConversation = useCallback(() => {
     const newConversationId = generateConversationId();
     const newConversation = {
@@ -100,32 +79,24 @@ export const useConversations = (authHeaders, isAuthenticated) => {
       updated_at: new Date().toISOString(),
       message_count: 0
     };
-    
     setCurrentConversation(newConversation);
-    
-    // Clear any cached messages for this conversation
     setConversationMessages(prev => ({
       ...prev,
       [newConversationId]: []
     }));
-    
     return newConversationId;
   }, [generateConversationId]);
 
-  // Switch to an existing conversation
   const switchToConversation = useCallback((conversation) => {
     console.log("useConversations: Switching to conversation", conversation.id);
     setCurrentConversation(conversation);
   }, []);
 
-  // Add a message to the current conversation (optimistic update)
   const addMessageToConversation = useCallback((conversationId, message) => {
     setConversationMessages(prev => ({
       ...prev,
       [conversationId]: [...(prev[conversationId] || []), message]
     }));
-
-    // Update conversation in list
     setConversations(prev => prev.map(conv => 
       conv.id === conversationId 
         ? { 
@@ -138,21 +109,15 @@ export const useConversations = (authHeaders, isAuthenticated) => {
     ));
   }, []);
 
-  // Delete a conversation
   const deleteConversation = useCallback(async (conversationId) => {
     try {
       const response = await fetch(
         `${API_ENDPOINTS.DELETE_CONVERSATION}/${conversationId}`,
-        {
-          method: 'DELETE',
-          headers: authHeaders()
-        }
+        { method: 'DELETE', headers: authHeaders() }  // ✅ CALL as function
       );
-
       if (response.ok) {
         setConversations(prev => prev.filter(conv => conv.id !== conversationId));
         delete conversationMessages[conversationId];
-        
         if (currentConversation?.id === conversationId) {
           setCurrentConversation(null);
         }
@@ -162,18 +127,16 @@ export const useConversations = (authHeaders, isAuthenticated) => {
     }
   }, [authHeaders, conversationMessages, currentConversation]);
 
-  // Get messages for current conversation
   const getCurrentMessages = useCallback(() => {
     if (!currentConversation) return [];
     return conversationMessages[currentConversation.id] || [];
   }, [currentConversation, conversationMessages]);
 
-  // Load conversations when user logs in
+  // Load conversations when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchConversations();
     } else {
-      // Clear data when user logs out
       setConversations([]);
       setCurrentConversation(null);
       setConversationMessages({});
@@ -181,13 +144,10 @@ export const useConversations = (authHeaders, isAuthenticated) => {
   }, [isAuthenticated, fetchConversations]);
 
   return {
-    // State
     conversations,
     currentConversation,
     conversationMessages,
     isLoading,
-
-    // Actions
     fetchConversations,
     fetchConversationMessages,
     startNewConversation,
@@ -195,8 +155,6 @@ export const useConversations = (authHeaders, isAuthenticated) => {
     addMessageToConversation,
     deleteConversation,
     getCurrentMessages,
-
-    // Utils
     generateConversationId
   };
 };

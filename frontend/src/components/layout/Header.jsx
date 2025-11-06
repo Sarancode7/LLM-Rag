@@ -1,24 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import { BookOpenText, Search, Crown, LogIn, Menu } from "lucide-react";
 import UpgradePrompt from "../auth/UpgradePrompt";
-import SidePanel from "../layout/SidePanel";
 
-const Header = ({ isAuthenticated, user, onLogin, onLogout }) => {
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+const Header = ({ 
+  isAuthenticated, 
+  user, 
+  onLogin, 
+  onLogout,
+  sidePanelOpen,        // ✅ ADD THIS
+  setSidePanelOpen      // ✅ ADD THIS
+}) => {
+  const [showUpgrade, setShowUpgrade] = React.useState(false);
+
+  const handleMenuClick = () => {
+    console.log("📌 Menu clicked! Toggling side panel...");
+    setSidePanelOpen(!sidePanelOpen);  // ✅ Use the prop instead of local state
+  };
 
   return (
     <>
       {/* 🧭 Header Bar */}
       <header className="relative z-20 bg-white/10 backdrop-blur-lg border-b border-white/20 shadow-xl">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className=" px-6 py-4 flex items-center justify-between">
           {/* Left Section - Menu + Logo */}
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setIsPanelOpen(true)}
+              onClick={handleMenuClick}  // ✅ Use the new handler
               className="p-2 rounded-lg hover:bg-white/20 transition"
             >
-              <Menu className="w-6 h-6 text-white" />
+              <Menu className="w-6 h-6 text-black" />
             </button>
 
             <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-br from-[#5ac8fa] to-[#007aff] shadow-md">
@@ -46,7 +56,7 @@ const Header = ({ isAuthenticated, user, onLogin, onLogout }) => {
             {isAuthenticated ? (
               <button
                 onClick={onLogout}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-white/20 text-white/80 
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-white/20 text-black/80 
                           hover:text-white hover:bg-white/10 transition-all duration-200"
               >
                 <img
@@ -62,7 +72,7 @@ const Header = ({ isAuthenticated, user, onLogin, onLogout }) => {
             ) : (
               <button
                 onClick={onLogin}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-white/20 text-white/80 
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-white/20 text-black/80 
                           hover:text-white hover:bg-white/10 transition-all duration-200"
               >
                 <LogIn className="w-4 h-4" />
@@ -72,9 +82,6 @@ const Header = ({ isAuthenticated, user, onLogin, onLogout }) => {
           </div>
         </div>
       </header>
-
-      {/* 🧩 Side Panel */}
-      <SidePanel isOpen={isPanelOpen} setIsOpen={setIsPanelOpen} />
 
       {/* 💎 Upgrade Modal */}
       {showUpgrade && <UpgradePrompt onClose={() => setShowUpgrade(false)} />}
