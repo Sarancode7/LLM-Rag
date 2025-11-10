@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/layout/Header';
 import BackgroundElements from './components/layout/BackgroundElements';
 import MessageList from './components/chat/MessageList';
@@ -14,6 +14,7 @@ import { useAuth } from './hooks/useAuth';
 import { useConversations } from './hooks/useConversations';
 import Payment from './components/Payment';
 
+
 const RAGChatbot = () => {
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
@@ -25,6 +26,7 @@ const RAGChatbot = () => {
     isAuthenticated,
     isLoading: authLoading,
     chatLimits,
+    setChatLimits,
     logout,
     getAuthHeaders,
     updateChatLimits
@@ -51,12 +53,31 @@ const RAGChatbot = () => {
     setIsLoading
   } = useMessages(currentConversation, conversationMessages);
 
-  // ✅ FIX: Pass getAuthHeaders function, not the result of calling it
+  // ✅ Callback to update chat limits from backend response
+  const handleChatLimitUpdate = useCallback((newRemaining, newUsed) => {
+    console.log('Chat limit update received in App.jsx:', { 
+      remaining: newRemaining, 
+      used: newUsed 
+    });
+    
+    setChatLimits({
+      remaining: newRemaining,
+      used: newUsed,
+      canChat: newRemaining > 0
+    });
+  }, [setChatLimits]);
+
   const {
     sendMessage,
     apiEndpoint,
     setApiEndpoint
-  } = useChatApi(addMessage, setIsLoading, getAuthHeaders, addMessageToConversation);
+  } = useChatApi(
+    addMessage, 
+    setIsLoading, 
+    getAuthHeaders(),
+    addMessageToConversation,
+    handleChatLimitUpdate
+  );
 
   const {
     connectionStatus,
@@ -64,6 +85,13 @@ const RAGChatbot = () => {
     testConnection
   } = useConnectionStatus(apiEndpoint);
 
+  // ✅ NEW: Open upgrade modal (called by both Header and InputArea)
+  const handleOpenUpgradeModal = () => {
+    console.log('Opening upgrade modal...');
+    setShowUpgradeModal(true);
+  };
+
+  // ✅ This function proceeds to payment after modal confirmation
   const handleUpgrade = () => {
     setShowUpgradeModal(false);
     setShowPayment(true);
@@ -97,7 +125,8 @@ const RAGChatbot = () => {
     }
 
     if (chatLimits && !chatLimits.canChat) {
-      setShowUpgradeModal(true);
+      // ✅ Open modal instead of directly blocking
+      handleOpenUpgradeModal();
       return;
     }
 
@@ -110,14 +139,16 @@ const RAGChatbot = () => {
         content: messageContent,
         timestamp: new Date()
       };
+      
       addMessage(userMessage);
       addMessageToConversation(conversationId, {
         type: 'user',
         content: messageContent,
         timestamp: new Date().toISOString()
       });
+      
       await sendMessage(messageContent, conversationId);
-      updateChatLimits(chatLimits.remaining - 1);
+      
     } catch (error) {
       console.error('Message send error:', error);
     }
@@ -153,6 +184,7 @@ const RAGChatbot = () => {
             onLogout={logout}
             sidePanelOpen={sidePanelOpen}
             setSidePanelOpen={setSidePanelOpen}
+            onOpenUpgradeModal={handleOpenUpgradeModal}  // ✅ Pass handler
           />
           <div className="flex-1 flex items-center justify-center">
             <AuthInterface
@@ -183,7 +215,6 @@ const RAGChatbot = () => {
         />
       )}
 
-      {/* ✅ Main SidePanel with Conversations */}
       <SidePanel 
         isOpen={sidePanelOpen} 
         setIsOpen={setSidePanelOpen}
@@ -200,13 +231,13 @@ const RAGChatbot = () => {
           sidePanelOpen ? 'lg:ml-80 ml-0' : ''
         } ${showChatHistory ? 'ml-80' : ''}`}
       >
-        {/* ✅ Updated Header with sidePanelOpen props */}
         <Header
           isAuthenticated={isAuthenticated}
           user={user}
           onLogout={logout}
           sidePanelOpen={sidePanelOpen}
           setSidePanelOpen={setSidePanelOpen}
+          onOpenUpgradeModal={handleOpenUpgradeModal}  // ✅ Pass handler
         />
 
         <MessageList messages={messages} isLoading={isLoading} user={user} />
@@ -217,12 +248,16 @@ const RAGChatbot = () => {
           isLoading={isLoading}
           isAuthenticated={isAuthenticated}
           chatLimits={chatLimits}
-          onUpgrade={handleUpgrade}
+          onOpenUpgradeModal={handleOpenUpgradeModal}  // ✅ Changed from onUpgrade
         />
       </div>
 
+      {/* ✅ Modal controlled by App.jsx */}
       {showUpgradeModal && (
-        <UpgradePrompt onUpgrade={handleUpgrade} onClose={handleCloseUpgradeModal} />
+        <UpgradePrompt 
+          onUpgrade={handleUpgrade}  // Go to payment
+          onClose={handleCloseUpgradeModal}  // Close modal
+        />
       )}
     </div>
   );

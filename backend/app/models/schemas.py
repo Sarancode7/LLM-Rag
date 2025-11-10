@@ -17,6 +17,8 @@ class ChatResponse(BaseModel):
     response: str
     sources: List[Source] = []
     conversation_id: str
+    remaining_chats: int = 0  # ✅ ADD THIS
+    chat_count: int = 0  # ✅ ADD THIS
 
 class HealthResponse(BaseModel):
     status: str

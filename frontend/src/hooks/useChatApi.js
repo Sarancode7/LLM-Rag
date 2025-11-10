@@ -2,7 +2,13 @@
 import { useState } from 'react';
 import { API_ENDPOINTS } from '../utils/constants';
 
-export const useChatApi = (addMessage, setIsLoading, authHeaders = {}, addMessageToConversation = null) => {
+export const useChatApi = (
+  addMessage, 
+  setIsLoading, 
+  authHeaders = {}, 
+  addMessageToConversation = null,
+  onChatLimitUpdate = null  
+) => {
   const [apiEndpoint, setApiEndpoint] = useState(API_ENDPOINTS.CHAT);
 
   const sendMessage = async (messageContent, conversationId = 'default') => {
@@ -47,6 +53,18 @@ export const useChatApi = (addMessage, setIsLoading, authHeaders = {}, addMessag
 
       const data = await response.json();
       console.log('Chat response:', data);
+      
+      // ✅ NEW: Update chat limits from backend response
+      if (data.remaining_chats !== undefined && data.chat_count !== undefined) {
+        console.log('Updating chat limits:', { 
+          remaining: data.remaining_chats, 
+          used: data.chat_count 
+        });
+        
+        if (typeof onChatLimitUpdate === 'function') {
+          onChatLimitUpdate(data.remaining_chats, data.chat_count);
+        }
+      }
       
       const timestamp = new Date().toISOString();
       const botMessageId = `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

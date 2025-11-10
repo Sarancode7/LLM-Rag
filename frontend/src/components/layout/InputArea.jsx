@@ -6,7 +6,8 @@ const InputArea = ({
   connectionStatus,
   isLoading,
   isAuthenticated,
-  chatLimits
+  chatLimits,
+  onOpenUpgradeModal
 }) => {
   const [inputMessage, setInputMessage] = useState('');
   const inputRef = useRef(null);
@@ -48,10 +49,21 @@ const InputArea = ({
       );
     } else if (!chatLimits.canChat) {
       return (
-        <span className="text-blue-700 flex items-center">
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎯 Status warning clicked - opening upgrade modal');
+            if (onOpenUpgradeModal) {
+              onOpenUpgradeModal();
+            }
+          }}
+          className="text-blue-700 flex items-center hover:text-blue-800 hover:underline cursor-pointer transition-all"
+          type="button"
+        >
           <Crown className="w-3 h-3 mr-1" />
-          Upgrade needed
-        </span>
+          <span>Upgrade needed</span>
+        </button>
       );
     } else if (connectionStatus !== 'connected') {
       return (
@@ -80,10 +92,8 @@ const InputArea = ({
   return (
     <div className="relative z-10 bg-transparent">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Input Row - CHANGED: items-end to items-center */}
         <div className="flex items-center space-x-4">
           <div className="flex-1 relative group">
-            {/* Floating Label */}
             <label
               htmlFor="chatInput"
               className={`absolute left-5 top-2 text-sm transition-all duration-200 ${
@@ -95,7 +105,6 @@ const InputArea = ({
               {getPlaceholderText()}
             </label>
 
-            {/* Text Area - CHANGED: pt-7 pb-3 to py-3 and px-5 */}
             <textarea
               id="chatInput"
               ref={inputRef}
@@ -124,10 +133,25 @@ const InputArea = ({
             />
           </div>
 
-          {/* Send Button */}
+          {/* ✅ FIXED: Smart Send/Upgrade Button */}
           <button
-            onClick={handleSendMessage}
-            disabled={!canSend()}
+            onClick={() => {
+              console.log('Button clicked! chatLimits.canChat:', chatLimits.canChat);
+              
+              // ✅ If no chats remaining, open upgrade modal
+              if (!chatLimits.canChat && isAuthenticated) {
+                console.log('🎯 Opening upgrade modal from Send button');
+                if (onOpenUpgradeModal) {
+                  onOpenUpgradeModal();
+                } else {
+                  console.error('onOpenUpgradeModal is not defined!');
+                }
+              } else {
+                // Normal send message behavior
+                handleSendMessage();
+              }
+            }}
+            disabled={isLoading || !isAuthenticated || connectionStatus !== 'connected'}
             className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl 
                       hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed 
                       transition-all duration-200 flex-shrink-0 shadow-md transform hover:scale-105 active:scale-95"
@@ -135,7 +159,7 @@ const InputArea = ({
               !isAuthenticated
                 ? 'Login required'
                 : !chatLimits.canChat
-                ? 'Upgrade needed'
+                ? 'Click to upgrade to premium'
                 : connectionStatus !== 'connected'
                 ? 'Server disconnected'
                 : 'Send message'
@@ -153,7 +177,6 @@ const InputArea = ({
           </button>
         </div>
 
-        {/* Footer info */}
         <div className="flex items-center justify-between mt-3 text-gray-800 text-sm">
           <p>Press Enter to send, Shift+Enter for new line</p>
           <div className="flex items-center space-x-4">

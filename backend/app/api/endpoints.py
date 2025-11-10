@@ -84,10 +84,13 @@ async def chat(request: ChatRequest, current_user: UserInfo):
                         score=src.get("score")
                     ))
         
+        # ✅ ADD remaining_chats to response!
         return ChatResponse(
             response=answer,
             sources=formatted_sources,
-            conversation_id=conversation_id
+            conversation_id=conversation_id,
+            remaining_chats=remaining_chats,  # ✅ ADD THIS!
+            chat_count=new_count  # ✅ ADD THIS TOO!
         )
         
     except Exception as e:

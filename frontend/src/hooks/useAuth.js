@@ -45,13 +45,16 @@ export const useAuth = () => {
 
       const data = await loginResponse.json();
       
+      // ✅ FIX: Get actual chat_count from backend (don't calculate!)
+      const chatCount = data.user?.chat_count || data.chat_count || 0;
+      
       // Store token and user info
       setToken(data.access_token);
       setUser(data.user);
       setIsAuthenticated(true);
       setChatLimits({
         remaining: data.remaining_chats,
-        used: LIMITS.FREE_CHAT_LIMIT - data.remaining_chats,
+        used: chatCount,  // ✅ FIXED: Use actual DB value
         canChat: data.remaining_chats > 0
       });
 
@@ -60,6 +63,7 @@ export const useAuth = () => {
       localStorage.setItem('user_info', JSON.stringify(data.user));
 
       console.log('Login successful:', data.user.email);
+      console.log('Chat limits:', { remaining: data.remaining_chats, used: chatCount });
       
     } catch (error) {
       console.error('Login error:', error);
@@ -101,7 +105,7 @@ export const useAuth = () => {
         const data = await response.json();
         setChatLimits({
           remaining: data.remaining_chats,
-          used: data.chat_count,
+          used: data.chat_count,  // ✅ Already using correct value here
           canChat: data.can_chat
         });
       } else if (response.status === 401) {
@@ -127,9 +131,10 @@ export const useAuth = () => {
 
       if (response.ok) {
         const data = await response.json();
+        // ✅ FIX: Don't calculate used, get it from backend
         setChatLimits({
           remaining: data.remaining_chats,
-          used: LIMITS.FREE_CHAT_LIMIT - data.remaining_chats,
+          used: LIMITS.FREE_CHAT_LIMIT - data.remaining_chats,  // This is OK for limits check
           canChat: data.remaining_chats > 0
         });
         return data.remaining_chats > 0;
@@ -182,13 +187,13 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Update chat limits after successful chat
-  const updateChatLimits = useCallback((newRemaining) => {
-    setChatLimits(prev => ({
+  // ✅ NEW: Update chat limits with both remaining and used count
+  const updateChatLimits = useCallback((newRemaining, newUsed) => {
+    setChatLimits({
       remaining: newRemaining,
-      used: prev.used + 1,
+      used: newUsed,  // ✅ Use actual count from backend
       canChat: newRemaining > 0
-    }));
+    });
   }, []);
 
   return {
@@ -200,6 +205,7 @@ export const useAuth = () => {
     
     // Chat limits
     chatLimits,
+    setChatLimits,  // ✅ Export this so App.jsx can use it
     
     // Actions
     logout,

@@ -1,18 +1,23 @@
 // utils/constants.js
+const BACKEND_URL = 'http://localhost:8000'
+//'http://15.206.68.175:8000';
+
 export const API_ENDPOINTS = {
-  CHAT: 'http://localhost:8000/chat',
-  HEALTH: 'http://localhost:8000/health',
-  DEBUG: 'http://localhost:8000/debug',
-  CONCISE: 'http://localhost:8000/concise',
-  // New auth endpoints
-  GOOGLE_LOGIN: 'http://localhost:8000/auth/google',
-  USER_ME: 'http://localhost:8000/auth/me',
-  CHAT_LIMITS: 'http://localhost:8000/auth/limits',
-  UPGRADE: 'http://localhost:8000/auth/upgrade',
+  CHAT: `${BACKEND_URL}/chat`,                    
+  HEALTH: `${BACKEND_URL}/health`,                
+  DEBUG: `${BACKEND_URL}/debug`,                  
+  CONCISE: `${BACKEND_URL}/concise`,             
+  
+  // Auth endpoints
+  GOOGLE_LOGIN: `${BACKEND_URL}/auth/google`,     
+  USER_ME: `${BACKEND_URL}/auth/me`,              
+  CHAT_LIMITS: `${BACKEND_URL}/auth/limits`,      
+  UPGRADE: `${BACKEND_URL}/auth/upgrade`,         
+  
   // Chat history endpoints
-  CHAT_HISTORY: 'http://localhost:8000/history',
-  CONVERSATION_MESSAGES: 'http://localhost:8000/conversation',
-  DELETE_CONVERSATION: 'http://localhost:8000/conversation'
+  CHAT_HISTORY: `${BACKEND_URL}/history`,                      
+  CONVERSATION_MESSAGES: `${BACKEND_URL}/conversation`,        
+  DELETE_CONVERSATION: `${BACKEND_URL}/conversation`           
 };
 
 export const CONNECTION_STATUS = {
@@ -28,9 +33,9 @@ export const MESSAGE_TYPES = {
 };
 
 export const TIMEOUTS = {
-  CONNECTION_TEST: 10000, // 10 seconds
-  CHAT_REQUEST: 60000,    // 60 seconds
-  AUTO_RETRY: 30000       // 30 seconds
+  CONNECTION_TEST: 10000,
+  CHAT_REQUEST: 60000,
+  AUTO_RETRY: 30000
 };
 
 export const LIMITS = {
